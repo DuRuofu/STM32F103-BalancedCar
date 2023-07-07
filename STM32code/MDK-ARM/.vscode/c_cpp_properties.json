@@ -10,6 +10,8 @@
                 "d:\\duruofu\\Project\\balancedVehicle\\code\\project\\STM32code\\Drivers\\CMSIS\\Include",
                 "d:\\duruofu\\Project\\balancedVehicle\\code\\project\\STM32code\\User\\OLED",
                 "d:\\duruofu\\Project\\balancedVehicle\\code\\project\\STM32code\\User\\LED",
+                "d:\\duruofu\\Project\\balancedVehicle\\code\\project\\STM32code\\User\\PWM",
+                "d:\\duruofu\\Project\\balancedVehicle\\code\\project\\STM32code\\User\\Motor",
                 "C:\\Keil_v5\\ARM\\ARMCC\\include",
                 "C:\\Keil_v5\\ARM\\ARMCC\\include\\rw",
                 "d:\\duruofu\\Project\\balancedVehicle\\code\\project\\STM32code\\MDK-ARM",

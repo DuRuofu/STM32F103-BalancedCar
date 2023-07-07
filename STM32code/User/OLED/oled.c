@@ -1,10 +1,17 @@
+/*
+ * @Author: DuRuofu duruofu@qq.com
+ * @Date: 2023-06-16 12-43-07
+ * @LastEditors: DuRuofu
+ * @LastEditTime: 2023-07-07 17-58-57
+ * @FilePath: \MDK-ARMd:\duruofu\Project\balancedVehicle\code\project\STM32code\User\OLED\oled.c
+ * @Description: 软件I2C驱动OLED SSD1306
+ * 				 使用cubemx生成的代码，需要将接OLED的引脚配置为GPIO输出模式(实测开漏输出和推挽输出都可以),并且命名为I2C_SCL和I2C_SDA，可以不加4.7k上拉电阻
+ * Copyright (c) 2023 by duruofu@foxmail.com All Rights Reserved. 
+ */
+
 #include "main.h"
 #include "oled.h"
 #include "OLED_Font.h"
-
-
-//软件I2C驱动OLED SSD1306
-//使用cubemx生成的代码，需要将接OLED的引脚配置为GPIO输出模式(实测开漏输出和推挽输出都可以),并且命名为I2C_SCL和I2C_SDA，可以不加4.7k上拉电阻
 
 
 /*引脚配置*/

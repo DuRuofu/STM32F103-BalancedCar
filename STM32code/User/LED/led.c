@@ -1,6 +1,15 @@
+/*
+ * @Author: DuRuofu duruofu@qq.com
+ * @Date: 2023-07-07 09-36-03
+ * @LastEditors: DuRuofu
+ * @LastEditTime: 2023-07-07 17-57-40
+ * @FilePath: \MDK-ARMd:\duruofu\Project\balancedVehicle\code\project\STM32code\User\LED\led.c
+ * @Description: 控制一个led灯
+ * Copyright (c) 2023 by duruofu@foxmail.com All Rights Reserved. 
+ */
+
 #include "led.h"
 
-//控制一个led灯
 
 /**
   * @brief  LED初始化

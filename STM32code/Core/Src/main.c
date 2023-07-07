@@ -18,12 +18,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "led.h"
 #include "oled.h"
+#include "motor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -85,10 +87,17 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   OLED_ShowString( 1, 1, "Hello World!");
-    
+  Motor_Init();
+  
+  Motor_Ctrl(100,1); 
+  //Motor_Ctrl(100,2); 
+  
+  //Motor_Ctrl(-300,2); 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,6 +111,9 @@ int main(void)
     LED_Toggle();
     HAL_Delay(500);
     OLED_ShowString( 1, 1, "Hello World!");
+    //电机测试
+    
+    
   }
   /* USER CODE END 3 */
 }
