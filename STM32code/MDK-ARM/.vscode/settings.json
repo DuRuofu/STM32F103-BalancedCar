@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "led.h": "c",
+        "main.h": "c",
+        "gpio.h": "c"
+    }
+}
