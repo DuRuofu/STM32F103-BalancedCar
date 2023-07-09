@@ -5,6 +5,7 @@
         "gpio.h": "c",
         "motor.h": "c",
         "pwm.h": "c",
-        "tim.h": "c"
+        "tim.h": "c",
+        "debug.h": "c"
     }
 }

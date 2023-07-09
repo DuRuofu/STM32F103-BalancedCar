@@ -59,14 +59,14 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_1_Pin GPIO_PIN_13
 #define LED_1_GPIO_Port GPIOC
-#define AIN1_Pin GPIO_PIN_14
-#define AIN1_GPIO_Port GPIOC
-#define AIN2_Pin GPIO_PIN_15
-#define AIN2_GPIO_Port GPIOC
 #define I2C_SCL_Pin GPIO_PIN_10
 #define I2C_SCL_GPIO_Port GPIOB
 #define I2C_SDA_Pin GPIO_PIN_11
 #define I2C_SDA_GPIO_Port GPIOB
+#define AIN1_Pin GPIO_PIN_12
+#define AIN1_GPIO_Port GPIOB
+#define AIN2_Pin GPIO_PIN_13
+#define AIN2_GPIO_Port GPIOB
 #define BIN1_Pin GPIO_PIN_14
 #define BIN1_GPIO_Port GPIOB
 #define BIN2_Pin GPIO_PIN_15

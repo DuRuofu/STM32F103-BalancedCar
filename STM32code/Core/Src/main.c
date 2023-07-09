@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -26,6 +27,7 @@
 #include "led.h"
 #include "oled.h"
 #include "motor.h"
+#include "serial_it_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,14 +90,16 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM1_Init();
+  MX_TIM2_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  OLED_Init();
+  OLED_Init();  //0.96oled初始化
+  Motor_Init(); //电机初始化
+  USART_IT_Config();//串口接收初始化
+  
   OLED_ShowString( 1, 1, "Hello World!");
-  Motor_Init();
-  
-  Motor_Ctrl(100,1); 
+  //Motor_Ctrl(120,2); 
   //Motor_Ctrl(100,2); 
-  
   //Motor_Ctrl(-300,2); 
 
   /* USER CODE END 2 */
@@ -110,10 +114,10 @@ int main(void)
     //测试LED
     LED_Toggle();
     HAL_Delay(500);
-    OLED_ShowString( 1, 1, "Hello World!");
+    //测试串口
+    //printf("测试串口");
+     DEBUG_info("main","Hello World"); 
     //电机测试
-    
-    
   }
   /* USER CODE END 3 */
 }
