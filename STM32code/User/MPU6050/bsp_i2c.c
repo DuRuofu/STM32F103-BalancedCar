@@ -1,137 +1,250 @@
+/**
+  ******************************************************************************
+  * 文件名程: bsp_eeprom.c 
+  * 作    者: 硬石嵌入式开发团队
+  * 版    本: V1.0
+  * 编写日期: 2015-10-04
+  * 功    能: 软件模拟I2C通信时序
+  ******************************************************************************
+  * 说明：
+  * 本例程配套硬石stm32开发板YS-F1Pro使用。
+  * 
+  * 淘宝：
+  * 论坛：[url=http://www.ing10bbs.com]http://www.ing10bbs.com[/url]
+  * 版权归硬石嵌入式开发团队所有，请勿商用。
+  ******************************************************************************
+  */
+/* 包含头文件 ----------------------------------------------------------------*/
 #include "bsp_i2c.h"
-#include "stm32f1xx_hal_i2c.h"
-
-I2C_HandleTypeDef I2C_Handle;			
+ 
+/* 私有类型定义 --------------------------------------------------------------*/
+/* 私有宏定义 ----------------------------------------------------------------*/
+/* 私有变量 ------------------------------------------------------------------*/
+/* 扩展变量 ------------------------------------------------------------------*/
+/* 私有函数原形 --------------------------------------------------------------*/
+/* 函数体 --------------------------------------------------------------------*/
 /**
-  * @brief  初始化I2C总线，使用I2C前需要调用
-  * @param  无
-  * @retval 无
+  * 函数功能: I2C总线位延迟，最快400KHz
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明：无
   */
-void I2cMaster_Init(void) 
+static void I2C_Delay(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	/* 使能I2Cx时钟 */
-	SENSORS_I2C_RCC_CLK_ENABLE();
-
-	/* 使能I2C GPIO 时钟 */
-	SENSORS_I2C_SCL_GPIO_CLK_ENABLE();
-	SENSORS_I2C_SDA_GPIO_CLK_ENABLE();
-
-	/* 配置I2Cx引脚: SCL ----------------------------------------*/
-	GPIO_InitStructure.Pin =  SENSORS_I2C_SCL_GPIO_PIN; 
-	GPIO_InitStructure.Mode = GPIO_MODE_AF_OD;
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
-	GPIO_InitStructure.Pull= GPIO_NOPULL;
-//	GPIO_InitStructure.Alternate=SENSORS_I2C_AF; 
-	HAL_GPIO_Init(SENSORS_I2C_SCL_GPIO_PORT, &GPIO_InitStructure);
-
-	/* 配置I2Cx引脚: SDA ----------------------------------------*/
-	GPIO_InitStructure.Pin = SENSORS_I2C_SDA_GPIO_PIN;  
-	HAL_GPIO_Init(SENSORS_I2C_SDA_GPIO_PORT, &GPIO_InitStructure); 
-	
-	if(HAL_I2C_GetState(&I2C_Handle) == HAL_I2C_STATE_RESET)
-	{	
-		/* 强制复位I2C外设时钟 */  
-		SENSORS_I2C_FORCE_RESET(); 
-
-		/* 释放I2C外设时钟复位 */  
-		SENSORS_I2C_RELEASE_RESET(); 
-		
-		/* I2C 配置 */
-    I2C_Handle.Instance = SENSORS_I2C;
-    I2C_Handle.Init.AddressingMode  = I2C_ADDRESSINGMODE_7BIT;
-    I2C_Handle.Init.ClockSpeed      = 400000;
-    I2C_Handle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-    I2C_Handle.Init.DutyCycle       = I2C_DUTYCYCLE_2;
-    I2C_Handle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-    I2C_Handle.Init.NoStretchMode   = I2C_NOSTRETCH_DISABLE;
-    I2C_Handle.Init.OwnAddress1     = 0;
-    I2C_Handle.Init.OwnAddress2     = 0;     
-		/* 初始化I2C */
-		HAL_I2C_Init(&I2C_Handle);	
-//		/* 使能模拟滤波器 */
-//		HAL_I2CEx_AnalogFilter_Config(&I2C_Handle, I2C_ANALOGFILTER_ENABLE); 
-	}
+        uint8_t i;
+ 
+        /*　
+                 下面的时间是通过逻辑分析仪测试得到的。
+                CPU主频72MHz时，在内部Flash运行, MDK工程不优化
+                循环次数为10时，SCL频率 = 205KHz 
+                循环次数为7时，SCL频率 = 347KHz， SCL高电平时间1.5us，SCL低电平时间2.87us 
+                 循环次数为5时，SCL频率 = 421KHz， SCL高电平时间1.25us，SCL低电平时间2.375us 
+         
+    IAR工程编译效率高，不能设置为7
+        */
+        for (i = 0; i < 10; i++);
 }
+ 
 /**
-  * @brief  Manages error callback by re-initializing I2C.
-  * @param  Addr: I2C Address
-  * @retval None
+  * 函数功能: CPU发起I2C总线启动信号
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明：无
   */
-static void I2Cx_Error(uint8_t Addr)
+void I2C_Start(void)
 {
-	/* 恢复I2C寄存器为默认值 */
-	HAL_I2C_DeInit(&I2C_Handle); 
-	/* 重新初始化I2C外设 */
-	I2cMaster_Init();
+        /* 当SCL高电平时，SDA出现一个下跳沿表示I2C总线启动信号 */
+        I2C_SDA_HIGH();
+        I2C_SCL_HIGH();
+        I2C_Delay();
+        I2C_SDA_LOW();
+        I2C_Delay();
+        I2C_SCL_LOW();
+        I2C_Delay();
 }
+ 
 /**
-  * @brief  写寄存器，这是提供给上层的接口
-	* @param  slave_addr: 从机地址
-	* @param 	reg_addr:寄存器地址
-	* @param len：写入的长度
-	*	@param data_ptr:指向要写入的数据
-  * @retval 正常为0，不正常为非0
+  * 函数功能: CPU发起I2C总线停止信号
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明：无
   */
-int Sensors_I2C_WriteRegister(unsigned char slave_addr,
-                                        unsigned char reg_addr,
-                                        unsigned short len, 
-                                        unsigned char *data_ptr)
+void I2C_Stop(void)
 {
-	HAL_StatusTypeDef status = HAL_OK;
-	status = HAL_I2C_Mem_Write(&I2C_Handle, slave_addr, reg_addr, I2C_MEMADD_SIZE_8BIT,data_ptr, len,I2Cx_FLAG_TIMEOUT); 
-	/* 检查通讯状态 */
-	if(status != HAL_OK)
-	{
-		/* 总线出错处理 */
-		I2Cx_Error(slave_addr);
-	}
-	while (HAL_I2C_GetState(&I2C_Handle) != HAL_I2C_STATE_READY)
-	{
-		
-	}
-	/* 检查SENSOR是否就绪进行下一次读写操作 */
-	while (HAL_I2C_IsDeviceReady(&I2C_Handle, slave_addr, I2Cx_FLAG_TIMEOUT, I2Cx_FLAG_TIMEOUT) == HAL_TIMEOUT);
-	/* 等待传输结束 */
-	while (HAL_I2C_GetState(&I2C_Handle) != HAL_I2C_STATE_READY)
-	{
-		
-	}
-	return status;
+        /* 当SCL高电平时，SDA出现一个上跳沿表示I2C总线停止信号 */
+        I2C_SDA_LOW();
+        I2C_SCL_HIGH();
+        I2C_Delay();
+        I2C_SDA_HIGH();
 }
-
+ 
 /**
-  * @brief  读寄存器，这是提供给上层的接口
-	* @param  slave_addr: 从机地址
-	* @param 	reg_addr:寄存器地址
-	* @param len：要读取的长度
-	*	@param data_ptr:指向要存储数据的指针
-  * @retval 正常为0，不正常为非00						
+  * 函数功能: CPU向I2C总线设备发送8bit数据
+  * 输入参数: Byte ： 等待发送的字节
+  * 返 回 值: 无
+  * 说    明：无
   */
-int Sensors_I2C_ReadRegister(unsigned char slave_addr,
-                                       unsigned char reg_addr,
-                                       unsigned short len, 
-                                       unsigned char *data_ptr)
+void I2C_SendByte(uint8_t Byte)
 {
-	HAL_StatusTypeDef status = HAL_OK;
-	status =HAL_I2C_Mem_Read(&I2C_Handle,slave_addr,reg_addr,I2C_MEMADD_SIZE_8BIT,data_ptr,len,I2Cx_FLAG_TIMEOUT);    
-	/* 检查通讯状态 */
-	if(status != HAL_OK)
-	{
-		/* 总线出错处理 */
-		I2Cx_Error(slave_addr);
-	}
-	while (HAL_I2C_GetState(&I2C_Handle) != HAL_I2C_STATE_READY)
-	{
-		
-	}
-	/* 检查SENSOR是否就绪进行下一次读写操作 */
-	while (HAL_I2C_IsDeviceReady(&I2C_Handle, slave_addr, I2Cx_FLAG_TIMEOUT, I2Cx_FLAG_TIMEOUT) == HAL_TIMEOUT);
-	/* 等待传输结束 */
-	while (HAL_I2C_GetState(&I2C_Handle) != HAL_I2C_STATE_READY)
-	{
-		
-	}
-	return status;
+        uint8_t i;
+ 
+        /* 先发送字节的高位bit7 */
+        for (i = 0; i < 8; i++)
+        {                
+                if (Byte & 0x80)
+                {
+                        I2C_SDA_HIGH();
+                }
+                else
+                {
+                        I2C_SDA_LOW();
+                }
+                I2C_Delay();
+                I2C_SCL_HIGH();
+                I2C_Delay();        
+                I2C_SCL_LOW();
+                if (i == 7)
+                {
+                        I2C_SDA_HIGH(); // 释放总线
+                }
+                Byte <<= 1;        /* 左移一个bit */
+                I2C_Delay();
+        }
 }
+ 
+ 
+/**
+  * 函数功能: CPU从I2C总线设备读取8bit数据
+  * 输入参数: 无
+  * 返 回 值: 读到的数据
+  * 说    明：无
+  */
+uint8_t I2C_ReadByte(uint8_t ack)
+{
+        uint8_t i;
+        uint8_t value;
+ 
+        /* 读到第1个bit为数据的bit7 */
+        value = 0;
+        for (i = 0; i < 8; i++)
+        {
+                value <<= 1;
+                I2C_SCL_HIGH();
+                I2C_Delay();
+                if (I2C_SDA_READ())
+                {
+                        value++;
+                }
+                I2C_SCL_LOW();
+                I2C_Delay();
+        }
+  if(ack==0)
+                I2C_NAck();
+        else
+                I2C_Ack();
+        return value;
+}
+ 
+/**
+  * 函数功能: CPU产生一个时钟，并读取器件的ACK应答信号
+  * 输入参数: 无
+  * 返 回 值: 返回0表示正确应答，1表示无器件响应
+  * 说    明：无
+  */
+uint8_t I2C_WaitAck(void)
+{
+        uint8_t re;
+ 
+        I2C_SDA_HIGH();        /* CPU释放SDA总线 */
+        I2C_Delay();
+        I2C_SCL_HIGH();        /* CPU驱动SCL = 1, 此时器件会返回ACK应答 */
+        I2C_Delay();
+        if (I2C_SDA_READ())        /* CPU读取SDA口线状态 */
+        {
+                re = 1;
+        }
+        else
+        {
+                re = 0;
+        }
+        I2C_SCL_LOW();
+        I2C_Delay();
+        return re;
+}
+ 
+/**
+  * 函数功能: CPU产生一个ACK信号
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明：无
+  */
+void I2C_Ack(void)
+{
+        I2C_SDA_LOW();        /* CPU驱动SDA = 0 */
+        I2C_Delay();
+        I2C_SCL_HIGH();        /* CPU产生1个时钟 */
+        I2C_Delay();
+        I2C_SCL_LOW();
+        I2C_Delay();
+        I2C_SDA_HIGH();        /* CPU释放SDA总线 */
+}
+ 
+/**
+  * 函数功能: CPU产生1个NACK信号
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明：无
+  */
+void I2C_NAck(void)
+{
+        I2C_SDA_HIGH();        /* CPU驱动SDA = 1 */
+        I2C_Delay();
+        I2C_SCL_HIGH();        /* CPU产生1个时钟 */
+        I2C_Delay();
+        I2C_SCL_LOW();
+        I2C_Delay();        
+}
+ 
+/**
+  * 函数功能: 配置I2C总线的GPIO，采用模拟IO的方式实现
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明：无
+  */
+void I2C_InitGPIO(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct;
+   
+  /* 打开GPIO时钟 */
+        I2C_GPIO_CLK_ENABLE();
+ 
+  GPIO_InitStruct.Pin = I2C_SCL_PIN|I2C_SDA_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  HAL_GPIO_Init(I2C_GPIO_PORT, &GPIO_InitStruct);
+ 
+  /* 给一个停止信号, 复位I2C总线上的所有设备到待机模式 */
+  I2C_Stop();
+}
+ 
+/**
+  * 函数功能: 检测I2C总线设备，CPU向发送设备地址，然后读取设备应答来判断该设备是否存在
+  * 输入参数: _Address：设备的I2C总线地址
+  * 返 回 值: 返回值 0 表示正确， 返回1表示未探测到
+  * 说    明：在访问I2C设备前，请先调用 I2C_CheckDevice() 检测I2C设备是否正常，该函数会配置GPIO
+  */
+uint8_t I2C_CheckDevice(uint8_t _Address)
+{
+        uint8_t ucAck;
+ 
+        I2C_InitGPIO();                /* 配置GPIO */       
+        I2C_Start();                /* 发送启动信号 */
+        /* 发送设备地址+读写控制bit（0 = w， 1 = r) bit7 先传 */
+        I2C_SendByte(_Address | I2C_WR);
+        ucAck = I2C_WaitAck();        /* 检测设备的ACK应答 */
+        I2C_Stop();                        /* 发送停止信号 */
+        return ucAck;
+}
+ 
+ 
+/******************* (C) COPYRIGHT 2015-2020 硬石嵌入式开发团队 *****END OF FILE****/

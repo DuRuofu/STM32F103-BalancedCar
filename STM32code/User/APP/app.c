@@ -23,9 +23,6 @@ void App_Init(void)
     Motor_Ctrl(300,1);
     Motor_Ctrl(300,2);
 
-    //硬件I2C初始化
-	I2cMaster_Init();
-
 	//MPU6050初始化
 	MPU6050_Init();
 
@@ -53,13 +50,10 @@ void App_Task(void)
     OLED_ShowSignedNum(3,1,Gyro[0],5);
     OLED_ShowSignedNum(3,6,Gyro[1],5);
     OLED_ShowSignedNum(3,11,Gyro[2],5);
-    OLED_ShowSignedNum(4,1,Temp,5);
     // // mpu6050任务
-     MPU6050ReadAcc(Acel);
-     MPU6050ReadGyro(Gyro);
 
-    //printf("加速度：%8d%8d%8d",Acel[0],Acel[1],Acel[2]);
-    //printf("陀螺仪%8d%8d%8d",Gyro[0],Gyro[1],Gyro[2]);
+    printf("加速度：%8d%8d%8d\r\n",Acel[0],Acel[1],Acel[2]);
+    printf("陀螺仪%8d%8d%8d\r\n",Gyro[0],Gyro[1],Gyro[2]);
     HAL_Delay(10);
 }
 
@@ -88,8 +82,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
         // MPU6050_ReturnTemp(&Temp);
         // mpu6050任务
-        //MPU6050ReadAcc(Acel);
-        //MPU6050ReadGyro(Gyro);
+        MPU6050ReadAcc(Acel);
+        MPU6050ReadGyro(Gyro);
         //小车运动任务
 
    }
