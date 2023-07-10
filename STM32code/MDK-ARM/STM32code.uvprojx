@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xB</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../User/OLED;../User/LED;../User/PWM;../User/Motor;..\User\USART</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../User/OLED;../User/LED;../User/PWM;../User/Motor;../User/USART;../User/APP;../User/Encoder</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -530,6 +530,11 @@
         <Group>
           <GroupName>Hardware</GroupName>
           <Files>
+            <File>
+              <FileName>app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\APP\app.c</FilePath>
+            </File>
             <File>
               <FileName>led.c</FileName>
               <FileType>1</FileType>

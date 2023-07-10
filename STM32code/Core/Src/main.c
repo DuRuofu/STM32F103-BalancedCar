@@ -24,10 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "led.h"
-#include "oled.h"
-#include "motor.h"
-#include "serial_it_config.h"
+#include "app.h"  //应用层头文件
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,16 +89,11 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  OLED_Init();  //0.96oled初始化
-  Motor_Init(); //电机初始化
-  USART_IT_Config();//串口接收初始化
+  App_Init();  //应用层初始化
   
-  OLED_ShowString( 1, 1, "Hello World!");
-  //Motor_Ctrl(120,2); 
-  //Motor_Ctrl(100,2); 
-  //Motor_Ctrl(-300,2); 
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -111,13 +103,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    //测试LED
-    LED_Toggle();
-    HAL_Delay(500);
-    //测试串口
-    //printf("测试串口");
-     DEBUG_info("main","Hello World"); 
-    //电机测试
+    App_Task();  //应用层任务
+
   }
   /* USER CODE END 3 */
 }

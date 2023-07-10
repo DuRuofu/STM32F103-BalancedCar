@@ -2,7 +2,7 @@
  * @Author: DuRuofu
  * @Date: 2023-07-07 15-48-41
  * @LastEditors: DuRuofu
- * @LastEditTime: 2023-07-07 22-06-01
+ * @LastEditTime: 2023-07-10 11-01-38
  * @FilePath: \MDK-ARMd:\duruofu\Project\balancedVehicle\code\project\STM32code\User\Motor\motor.c
  * @Description: 电机驱动模块(使用TB6612)
  * Copyright (c) 2023 by duruofu@foxmail.com All Rights Reserved. 
@@ -51,8 +51,9 @@ void Motor_Ctrl(int16_t pwm, uint8_t n)
     uint16_t pwm_num=0;
 	pwm_num = my_abs(pwm);
     
-    if(n == 1)
+    switch (n)
     {
+    case 1:
         if(pwm >= 0)
         {
             TB6612_Ctrl(1,1);
@@ -62,10 +63,8 @@ void Motor_Ctrl(int16_t pwm, uint8_t n)
             TB6612_Ctrl(0,1);
         }
         PWMA_Set(pwm_num);
-
-    }
-    if(n == 2)
-    {
+        break;
+    case 2:
         if(pwm >= 0)
         {
             TB6612_Ctrl(1,2);
@@ -76,6 +75,9 @@ void Motor_Ctrl(int16_t pwm, uint8_t n)
             TB6612_Ctrl(0,2);
         }
         PWMB_Set(pwm_num);
+        break;    
+    default:
+        break;
     }
 }
 

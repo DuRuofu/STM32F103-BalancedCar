@@ -16,7 +16,7 @@
 #define PWM_CHANNEL_B TIM_CHANNEL_4
 
 //设定占空比最大值(Counter Period计数值)
-#define PWM_D 1000
+#define PWM_D 7200
 
 //PWM初始化
 void PWM_Init(void)
