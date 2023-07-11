@@ -4,9 +4,10 @@
 int16_t car_speed_1 = 0;
 int16_t car_speed_2 = 0;
 
-short Acel[3];
-short Gyro[3];
-float Temp;
+float pitch,roll,yaw; 		    //欧拉角
+short aacx,aacy,aacz;			//加速度传感器原始数据
+short gyrox,gyroy,gyroz;		//陀螺仪原始数据
+float temp;					    //温度
 
 /**
  * @description: 系统应用初始化
@@ -20,11 +21,13 @@ void App_Init(void)
     Encoder_Count_Init();               //编码器计数初始化
      
     //测试电机
-    Motor_Ctrl(300,1);
-    Motor_Ctrl(300,2);
+     Motor_Ctrl(300,1);
+     Motor_Ctrl(300,2);
 
-	//MPU6050初始化
-	MPU6050_Init();
+
+    //MPU_Init();//MPU6050初始化
+    while(MPU_Init()!=0){printf("MPU初始化\r\n");}//DMP库初始化
+    while(mpu_dmp_init()!=0){printf("DMP库初始化:%d\r\n",mpu_dmp_init());}//DMP库初始化
 
     //开始数据采样
     HAL_TIM_Base_Start_IT(&htim4);      //启动定时器4 
@@ -44,21 +47,22 @@ void App_Task(void)
     OLED_ShowSignedNum(1,1,car_speed_1,5);
     OLED_ShowSignedNum(1,8,car_speed_2,5);
     //MPU6050值
-    OLED_ShowSignedNum(2,1,Acel[0],5);
-    OLED_ShowSignedNum(2,6,Acel[1],5);
-    OLED_ShowSignedNum(2,11,Acel[2],5);
-    OLED_ShowSignedNum(3,1,Gyro[0],5);
-    OLED_ShowSignedNum(3,6,Gyro[1],5);
-    OLED_ShowSignedNum(3,11,Gyro[2],5);
-    // // mpu6050任务
+    OLED_ShowSignedNum(2,1,roll,5);
+    OLED_ShowSignedNum(2,6,pitch,5);
+    OLED_ShowSignedNum(2,11,yaw,5);
+    OLED_ShowSignedNum(3,1,temp,5);
 
-    printf("加速度：%8d%8d%8d\r\n",Acel[0],Acel[1],Acel[2]);
-    printf("陀螺仪%8d%8d%8d\r\n",Gyro[0],Gyro[1],Gyro[2]);
+    // // mpu6050任务
+    while(mpu_dmp_get_data(&pitch, &roll, &yaw));	//必须要用while等待，才能读取成功
+    MPU_Get_Accelerometer(&aacx,&aacy, &aacz);		//得到加速度传感器数据
+    MPU_Get_Gyroscope(&gyrox, &gyroy, &gyroz);		//得到陀螺仪数据
+    temp=MPU_Get_Temperature();						//得到温度信息
+    printf("X:%.1f°  Y:%.1f°  Z:%.1f°  %.2f°C\r\n",roll,pitch,yaw,temp/100);//串口1输出采集信息
     HAL_Delay(10);
 }
 
 
-//定时器中断回调函数(1ms一次)
+//定时器中断回调函数(2ms一次)
 uint16_t encoder_count=0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){   
    if(htim == &htim4)  //判断中断是否来自于定时器4
@@ -79,14 +83,37 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
             Encoder_Count_Clear(1);
             Encoder_Count_Clear(2);
         }
-
-        // MPU6050_ReturnTemp(&Temp);
-        // mpu6050任务
-        MPU6050ReadAcc(Acel);
-        MPU6050ReadGyro(Gyro);
         //小车运动任务
 
    }
 }
+
+
+
+//pid部分
+//小车机械零点
+int32_t Car_zero=1.5f; 
+//直立环Kp,Kd     
+int32_t Upright_Kp=1.5f;  
+int32_t Upright_Kd=1.5f;  
+
+//直立环
+//平衡车控制*
+//函数功能：控制小车保持直立
+//Angle：采集到的实际角度值
+//Gyro： 采集到的实际角速度值
+int PID_Upright(float Angle,float Gyro)
+{  
+   float err;
+    int pwm_zhili;
+    err=Car_zero-Angle;    //期望值-实际值，这里期望小车平衡，因此期望值就是机械中值       
+    pwm_zhili=Upright_Kp*err+Gyro*Upright_Kd;//计算平衡控制的电机PWM
+    return pwm_zhili;
+}
+
+//速度环
+
+
+//转向环
 
 
