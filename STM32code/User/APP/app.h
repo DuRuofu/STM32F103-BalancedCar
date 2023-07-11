@@ -16,5 +16,9 @@
 
 void App_Init(void);
 void App_Task(void);
+void MPU6050_Data_Read(void);
+void Motor_Speed_Read(void);
+void Car_PID_Ctrl(void);
+
 
 #endif // !__APP_H
