@@ -7,20 +7,20 @@ int16_t car_speed_1 = 0;
 int16_t car_speed_2 = 0;
 
 //*********直立环参数*********
-int32_t Car_zero = -4.2f;    // 小车机械零点
-int32_t Upright_Kp = -10.5f;  // 直立环PID参数Kp
-int32_t Upright_Kd = 0.8f;  // 直立环PID参数Kd
-int32_t PWM_Upright = 1.5f; // 直立环PWM
+int32_t Car_zero = -5.5f;    // 小车机械零点
+int32_t Upright_Kp = -700.0f *0.6f;  // 直立环PID参数Kp
+int32_t Upright_Kd = 1.1f   *0.6f;// 直立环PID参数Kd
+int32_t PWM_Upright = 0.0f; // 直立环PWM
 //*********速度环参数*********
-int32_t Speed_Kp = 1.5f;  // 速度环PID参数
-int32_t Speed_Ki = 1.5f;  // 速度环PID参数
-int32_t Speed_Kd = 1.5f;  // 速度环PID参数
-int32_t PWM_Speed = 1.5f; // 速度环PWM
+int32_t Speed_Kp = 1.0f;  // 速度环PID参数
+int32_t Speed_Ki = 0.005f;  // 速度环PID参数
+int32_t PWM_Speed = 0.0f; // 速度环PWM
 
 //*********转向环参数*********
 
 //*********最终输出PWM*********
-int16_t PWM_MAX = 1000;   // PWM最大值(限幅)
+int16_t PWM_Min = 0;  //电机死区
+int16_t PWM_MAX = 7200;   // PWM最大值(限幅)
 int16_t PWM_Output_1 = 0; // 最终输出的PWM值(电机1)
 int16_t PWM_Output_2 = 0; // 最终输出的PWM值(电机2)
 
@@ -52,6 +52,7 @@ void App_Init(void)
     HAL_TIM_Base_Start_IT(&htim4); // 启动定时器4
 
     // 电机控制
+    //Motor_Ctrl(300, 1);
 
 }
 
@@ -81,7 +82,7 @@ void App_Task(void)
 }
 
 
-// 定时器中断回调函数(2ms一次)
+// 定时器中断回调函数(1ms一次)
 uint16_t encoder_count = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
@@ -91,7 +92,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         MPU6050_Data_Read();
         // 编码器测速任务
         encoder_count++;
-        if (encoder_count == 3)
+        if (encoder_count == 5)
         {
             // 计数值清零
             encoder_count = 0;
@@ -154,8 +155,23 @@ int PID_Upright(float Angle, float Gyro)
  */
 int16_t PID_Speed(int16_t car_speed_1, int16_t car_speed_2)
 {
-    int16_t PWM_Speed, err;
-    return PWM_Speed;
+    static float Velocity,Encoder_Least,Encoder,Movement;
+    static float Encoder_Integral;
+   //=============速度PI控制器=======================//  
+    Encoder_Least =(car_speed_1+car_speed_2)-0;      
+    //===获取最新速度偏差==测量速度（左右编码器之和）-目标速度（此处为零） 
+    Encoder *= 0.7;          //===一阶低通滤波器       
+    Encoder += Encoder_Least*0.3;   //===一阶低通滤波器    
+    Encoder_Integral +=Encoder; //===积分出位移 积分时间：10ms
+    if(Encoder_Integral>10000)    Encoder_Integral=10000;   
+    //===积分限幅
+    if(Encoder_Integral<-10000)    Encoder_Integral=-10000;   
+    //===积分限幅  
+    Velocity=Encoder*Speed_Kp+Encoder_Integral*Speed_Ki;  
+    //===速度控制  
+    if(pitch<-40||pitch>40)   Encoder_Integral=0;   
+    //===电机关闭后清除积分
+    return Velocity;
 }
 
 // 转向环
@@ -169,12 +185,13 @@ void Car_PID_Ctrl(void)
     // 直立环
     PWM_Upright = PID_Upright(pitch, gyroy);
     // 速度环
+    PWM_Speed = PID_Speed(car_speed_1, car_speed_2);
 
     // 转向环
 
     // 最终输出PWM
-    PWM_Output_1 = PWM_Upright;
-    PWM_Output_2 = PWM_Upright;
+    PWM_Output_1 = PWM_Upright+PWM_Speed;
+    PWM_Output_2 = PWM_Upright+PWM_Speed;
 
     // 限幅
     if (PWM_Output_1 >= PWM_MAX)

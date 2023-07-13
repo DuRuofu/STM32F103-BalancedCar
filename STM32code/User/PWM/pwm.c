@@ -2,7 +2,7 @@
  * @Author: DuRuofu duruofu@qq.com
  * @Date: 2023-07-07 15-49-11
  * @LastEditors: DuRuofu
- * @LastEditTime: 2023-07-07 19-34-50
+ * @LastEditTime: 2023-07-12 08-52-49
  * @FilePath: \MDK-ARMd:\duruofu\Project\balancedVehicle\code\project\STM32code\User\PWM\pwm.c
  * @Description: PWM模块(驱动电机使用,双路同频)
  * Copyright (c) 2023 by duruofu@foxmail.com All Rights Reserved. 
@@ -28,7 +28,7 @@ void PWM_Init(void)
     __HAL_TIM_SET_COMPARE(&TIM, PWM_CHANNEL_A, 0);
     __HAL_TIM_SET_COMPARE(&TIM, PWM_CHANNEL_B, 0);
 
-}
+} 
 
 //PWMA占空比调节
 void PWMA_Set(uint16_t pwm_d)
